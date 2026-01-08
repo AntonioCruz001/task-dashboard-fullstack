@@ -1,5 +1,7 @@
-import './App.css'
 import { useState, useEffect } from 'react';
+import TaskItem from './components/TaskItem';
+import TaskForm from './components/TaskForm';
+import './App.css'
 
 export default function App() {
 
@@ -7,57 +9,46 @@ export default function App() {
 
     const salvas = localStorage.getItem('meu_dashboard_tarefas');
 
-    return salvas ? JSON.parse(salvas) : [
-      { id: 1, texto: "Estudar React e Programação Funcional" },
-      { id: 2, texto: "Finalizar o layout do Dashboard" },
-      { id: 3, texto: "Aprender a usar o método Map" },
-      { id: 4, texto: "Configurar o ambiente Node.js" },
-    ]
+    return salvas ? JSON.parse(salvas) : []
   });
 
   useEffect(() => {
     localStorage.setItem('meu_dashboard_tarefas', JSON.stringify(tarefas));
   }, [tarefas])
 
+
+  const adicionarTarefa = (texto) => {
+    const nova = { id: Date.now(), texto, concluida: false }
+    setTarefas([...tarefas, nova]); // adiciona a nova tarefa no final do novo array
+  }
+
   const removerTarefa = (id) => {
     //Excluir a tarefa com o id atual 
     //E retornar nova lista sem a tarefa excuida
-    const novaLista = tarefas.filter(tarefa => tarefa.id !== id)
     //Muda o valor de tarefas no useState
-    setTarefas(novaLista);
-  }
-
-  const [novoTexto, setNovotexto] = useState("");
-
-  const adicionarTarefa = (event) => {
-    event.preventDefault();
-
-    // Não adiciona se o campo estiver vazio
-    // trim() remove os espaços etc...
-    if (novoTexto.trim() === "") return;
-
-    const novaTarefa = {
-      id: Date.now(),
-      texto: novoTexto, // referencia o useState
-      concluida: false
-    }
-
-    setTarefas([...tarefas, novaTarefa]); // adiciona a nova tarefa no final do novo array
-
-    setNovotexto(""); // reseta o campo de texto
+    setTarefas(tarefas.filter(t => t.id !== id));
   }
 
   const alterarConclusao = (id) => {
-    const novaLista = tarefas.map(tarefa => {
-      if (tarefa.id === id) {
-        // Retorna uma cópia da tarefa com o valor de 'concluida' invertido
-        return { ...tarefa, concluida: !tarefa.concluida }
-      }
-
-      return tarefa; // As outras tarefas permanecem iguais
-    })
-    setTarefas(novaLista);
+    setTarefas(tarefas.map(t => t.id === id ? { ...t, concluida: !t.concluida } : t));
   };
+
+  const [busca, setBusca] = useState("");
+
+  // 'busca' será usado quando a página re-renderizar com 'setBusca'
+  const tarefasFiltradas = tarefas.filter(tarefa => {
+
+    // Se a busca estiver vazia, retornamos TRUE para todos (mostra tudo)
+    if (!busca || busca.trim() === "") return true;
+
+    // Se a tarefa não tiver texto, retornamos FALSE (esconde ela)
+    if (!tarefa.texto) return false;
+    
+    return tarefa.texto.toLowerCase().includes(busca.toLowerCase())
+  });
+
+  console.log("Valor atual da busca:", `'${busca}'`);
+
 
   return (
     <div className="app-container">
@@ -77,50 +68,32 @@ export default function App() {
       <main className='dashboard-content'>
         <section className="task-list">
 
-          {/* Formulário */}
-          <form onSubmit={adicionarTarefa} className='task-form'>
-            <input
-              type="text"
-              placeholder='Adicionar tarefa...'
-              value={novoTexto} // o valor vem do useState
-              onChange={(e) => setNovotexto(e.target.value)} // atualiza o valor ao digitar
-            />
-            <button type='submit' className='add-btn'>Adicionar</button>
-          </form>
-
-
-
           <h2>Minhas Tarefas</h2>
 
-          {/*Aqui entrarão os componentes das tarefas*/}
+          <div className='search-container'>
+            <input
+              type="text"
+              placeholder='Pesquisar tarefas'
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)} // quando digitar uma letra será disparado o filter
+              className='search-input'
+            />
+          </div>
+
+          {/* a "props.aoAdicionar" recebe a função adicionarTarefa */}
+          <TaskForm aoAdicionar={adicionarTarefa} />
 
           <div className='tasks-container'>
-            {tarefas.map((tarefa) => (
-              <div
+            {tarefasFiltradas.map(tarefa => (
+              <TaskItem
                 key={tarefa.id}
-                className={`task-item ${tarefa.concluida ? 'completed' : ''}`} >
-
-                <span onClick={() => alterarConclusao(tarefa.id)}>{tarefa.texto}</span>
-
-                <button className='delete-btn' onClick={() => removerTarefa(tarefa.id)}>
-                  Excluir
-                </button>
-              </div>
+                tarefa={tarefa}
+                aoAlternar={alterarConclusao}
+                aoRemover={removerTarefa}
+              />
             ))}
           </div>
-
-          {/* <div className="task-item">
-            <span>Tarefa 1: Estudar React</span>
-            <button className="delete-btn">Excluir</button>
-          </div>
-
-          <div className="task-item">
-            <span>Tarefa 2: Estudar API</span>
-            <button className="delete-btn">Excluir</button>
-          </div> */}
-
         </section>
-
       </main>
 
       {/* Observação: Use <main> e <nav> (ou <aside>) no nível principal para o Grid */}
