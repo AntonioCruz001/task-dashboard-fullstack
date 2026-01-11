@@ -16,6 +16,12 @@ export default function App() {
     localStorage.setItem('meu_dashboard_tarefas', JSON.stringify(tarefas));
   }, [tarefas])
 
+  const [tema, setTema] = useState('escuro');
+
+  const alterarTema = () => {
+    setTema(tema === 'escuro' ? 'claro' : 'escuro');
+  }
+
 
   const adicionarTarefa = (texto) => {
     const nova = { id: Date.now(), texto, concluida: false }
@@ -33,27 +39,37 @@ export default function App() {
     setTarefas(tarefas.map(t => t.id === id ? { ...t, concluida: !t.concluida } : t));
   };
 
+  // 'busca' será usado quando a página re-renderizar com 'setBusca'
   const [busca, setBusca] = useState("");
 
-  // 'busca' será usado quando a página re-renderizar com 'setBusca'
   const tarefasFiltradas = tarefas.filter(tarefa => {
-
-    // Se a busca estiver vazia, retornamos TRUE para todos (mostra tudo)
+    // Se a busca estiver vazia, retorna TRUE para todos (mostra tudo)
     if (!busca || busca.trim() === "") return true;
-
-    // Se a tarefa não tiver texto, retornamos FALSE (esconde ela)
+    // Se a tarefa não tiver texto, retorna FALSE (esconde ela)
     if (!tarefa.texto) return false;
-    
     return tarefa.texto.toLowerCase().includes(busca.toLowerCase())
   });
 
+  const tarefasOrdenadas = [...tarefasFiltradas].sort((a, b) => {
+    if (a.concluida === b.concluida) return 0;
+    return a.concluida ? 1 : -1;
+  })
+
   console.log("Valor atual da busca:", `'${busca}'`);
 
+  const totalTarefas = tarefas.length;
+  const concluidas = tarefas.filter(t => t.concluida).length;
+  const pendentes = totalTarefas - concluidas
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${tema}`}>
+
+
       <header className="dashboard-header">
         <h1>Dashboard de Tarefas (React)</h1>
+        <button onClick={alterarTema} className='btn-tema'>
+          {tema === 'escuro' ? '☀️ Modo Claro' : '🌙 Modo Escuro'}
+        </button>
       </header>
 
       <nav className="dashboard-sidebar">
@@ -70,6 +86,21 @@ export default function App() {
 
           <h2>Minhas Tarefas</h2>
 
+          <section className='stats-container'>
+            <div className='stat-card'>
+              <span>Total</span>
+              <strong>{totalTarefas}</strong>
+            </div>
+            <div className='stat-card'>
+              <span>Concluídas</span>
+              <strong className='sucsses'>{concluidas}</strong>
+            </div>
+            <div className='stat-card'>
+              <span>Pendentes</span>
+              <strong className='warning'>{pendentes}</strong>
+            </div>
+          </section>
+
           <div className='search-container'>
             <input
               type="text"
@@ -84,7 +115,7 @@ export default function App() {
           <TaskForm aoAdicionar={adicionarTarefa} />
 
           <div className='tasks-container'>
-            {tarefasFiltradas.map(tarefa => (
+            {tarefasOrdenadas.map(tarefa => (
               <TaskItem
                 key={tarefa.id}
                 tarefa={tarefa}
