@@ -8,9 +8,7 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover }) {
                 <span className="status-icon">
                     {tarefa.concluida ? '✅' : '⭕'}
                 </span>
-
                 <span className="task-text">{tarefa.texto}</span>
-
             </div>
 
             <button
