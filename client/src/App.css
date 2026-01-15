@@ -200,7 +200,7 @@ input {
     user-select: none;
 
     background-color: var(--card-bg);
-    color: var(--text-color) ;
+    color: var(--text-color);
     border: 1px solid var(--border-color);
 }
 
@@ -377,6 +377,17 @@ input {
     .task-item span {
         word-break: break-word;
         margin-right: 10px;
+    }
+
+    .edit-input {
+        background: transparent;
+        border: 1px solid var(--text-color);
+        color: var(--text-color);
+        font-size: 1rem;
+        padding: 2px 5px;
+        border-radius: 4px;
+        outline: none;
+        width: 100%;
     }
 
     .btn-tema {

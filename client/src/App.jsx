@@ -61,9 +61,14 @@ export default function App() {
   const concluidas = tarefas.filter(t => t.concluida).length;
   const pendentes = totalTarefas - concluidas
 
+  const editarTarefa = (id, novoTexto) => {
+    const tarefasAtualizadas = tarefas.map(
+      t => t.id === id ? { ...t, texto: novoTexto } : t);
+    setTarefas(tarefasAtualizadas);
+  }
+
   return (
     <div className={`app-container ${tema}`}>
-
 
       <header className="dashboard-header">
         <h1>Dashboard de Tarefas (React)</h1>
@@ -121,6 +126,7 @@ export default function App() {
                 tarefa={tarefa}
                 aoAlternar={alterarConclusao}
                 aoRemover={removerTarefa}
+                aoEditar={editarTarefa}
               />
             ))}
           </div>
