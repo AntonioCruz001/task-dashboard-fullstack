@@ -6,9 +6,7 @@ import './App.css'
 export default function App() {
 
   const [tarefas, setTarefas] = useState(() => {
-
     const salvas = localStorage.getItem('meu_dashboard_tarefas');
-
     return salvas ? JSON.parse(salvas) : []
   });
 
@@ -60,6 +58,9 @@ export default function App() {
   const totalTarefas = tarefas.length;
   const concluidas = tarefas.filter(t => t.concluida).length;
   const pendentes = totalTarefas - concluidas
+  const porcentagem = totalTarefas > 0 ?
+    Math.round((concluidas / totalTarefas) * 100) :
+    0;
 
   const editarTarefa = (id, novoTexto) => {
     const tarefasAtualizadas = tarefas.map(
@@ -92,6 +93,19 @@ export default function App() {
           <h2>Minhas Tarefas</h2>
 
           <section className='stats-container'>
+
+            <div className='stats-text'>
+              <span>{concluidas}de {totalTarefas} tarefas concluídas</span>
+              <span>{porcentagem}%</span>
+            </div>
+
+            <div className='progress-bar-bg'>
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${porcentagem}%` }}>
+              </div>
+            </div>
+
             <div className='stat-card'>
               <span>Total</span>
               <strong>{totalTarefas}</strong>
