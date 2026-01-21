@@ -43,13 +43,13 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
                     />
                 ) :
                     <span className="task-text">{tarefa.texto}</span>
-                };
+                }
 
             </div>
 
             <div className="task-actions">
                 <button
-                    className="edit-btn"
+                    className="edit-btn action-btn"
                     onClick={(e) => {
                         e.stopPropagation();
                         setEditando(true);
@@ -59,7 +59,7 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
                 </button>
 
                 <button
-                    className="delete-btn"
+                    className="delete-btn action-btn"
                     onClick={(e) => {
                         e.stopPropagation();
                         aoRemover(tarefa.id);

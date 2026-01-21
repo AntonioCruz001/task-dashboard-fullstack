@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import TaskItem from './components/TaskItem';
 import TaskForm from './components/TaskForm';
 import './App.css'
+import Lupa from './assets/Lupa.png'
 
 export default function App() {
 
@@ -90,44 +91,59 @@ export default function App() {
       <main className='dashboard-content'>
         <section className="task-list">
 
-          <h2>Minhas Tarefas</h2>
+          <div className='title-and-stats'>
+            <h2>Minhas Tarefas</h2>
 
-          <section className='stats-container'>
+            <section className='stats-container'>
 
-            <div className='stats-text'>
-              <span>{concluidas}de {totalTarefas} tarefas concluídas</span>
-              <span>{porcentagem}%</span>
-            </div>
-
-            <div className='progress-bar-bg'>
-              <div
-                className="progress-bar-fill"
-                style={{ width: `${porcentagem}%` }}>
+              <div className='stats-text'>
+                {/* <span>{concluidas}de {totalTarefas} tarefas concluídas</span> */}
+                <span>{porcentagem}%</span>
               </div>
+
+              <div className='progress-bar-bg'>
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: `${porcentagem}%` }}>
+                </div>
+              </div>
+
+              <div className='stat-card'>
+                <span>Total</span>
+                <strong>{totalTarefas}</strong>
+              </div>
+              <div className='stat-card'>
+                <span>Concluídas</span>
+                <strong className='sucsses'>{concluidas}</strong>
+              </div>
+              <div className='stat-card'>
+                <span>Pendentes</span>
+                <strong className='warning'>{pendentes}</strong>
+              </div>
+            </section>
+
+            <div className='search-container'>
+              <svg
+                className="search-icon-svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                // placeholder='Pesquisar tarefas'
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)} // quando digitar uma letra será disparado o filter
+                className='search-input'
+              />
             </div>
 
-            <div className='stat-card'>
-              <span>Total</span>
-              <strong>{totalTarefas}</strong>
-            </div>
-            <div className='stat-card'>
-              <span>Concluídas</span>
-              <strong className='sucsses'>{concluidas}</strong>
-            </div>
-            <div className='stat-card'>
-              <span>Pendentes</span>
-              <strong className='warning'>{pendentes}</strong>
-            </div>
-          </section>
-
-          <div className='search-container'>
-            <input
-              type="text"
-              placeholder='Pesquisar tarefas'
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)} // quando digitar uma letra será disparado o filter
-              className='search-input'
-            />
           </div>
 
           {/* a "props.aoAdicionar" recebe a função adicionarTarefa */}
