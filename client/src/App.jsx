@@ -1,73 +1,129 @@
 import { useState, useEffect } from 'react';
 import TaskItem from './components/TaskItem';
 import TaskForm from './components/TaskForm';
+import { supabase } from './supabaseClient';
 import './App.css'
-import Lupa from './assets/Lupa.png'
+// import Venda from './components/Venda';
+// import Lupa from './assets/Lupa.png'
 
 export default function App() {
 
-  const [tarefas, setTarefas] = useState(() => {
-    const salvas = localStorage.getItem('meu_dashboard_tarefas');
-    return salvas ? JSON.parse(salvas) : []
-  });
+  const [tarefas, setTarefas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState("");
+  const [tema, setTema] = useState('escuro');
+
+  const nomeTabela = 'tasks';
+
+  const STATUS = {
+    DONE: 'feito',
+    INPROGRESS: 'fazendo',
+    TODO: 'para fazer'
+  }
+
+  const fetchTasks = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from(nomeTabela)
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error) setTarefas(data);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    localStorage.setItem('meu_dashboard_tarefas', JSON.stringify(tarefas));
-  }, [tarefas])
+    fetchTasks()
+  }, []);
 
-  const [tema, setTema] = useState('escuro');
+  // --- ADICIONAR (CREATE) ---
+  // Agora a função recebe um objeto 'novaTarefa'
+  const adicionarTarefa = async (dadosDaTarefa) => {
+    const { data, error } = await supabase
+      .from(nomeTabela)
+      .insert([
+        {
+          title: dadosDaTarefa.titulo,
+          description: dadosDaTarefa.descricao,
+          status: dadosDaTarefa.status || 'todo',
+          priority: dadosDaTarefa.prioridade || 'media',
+          due_date: dadosDaTarefa.dataTarefa
+        }])
+      .select()
+
+    if (error) {
+      alert("Erro ao salvar: " + error.message)
+      console.log(error);
+    } else {
+      // pega a linha 0 (nova tarefa) do array de itens da tabela 
+      // e poe no topo da pilha de tarefas
+      // setTarefas ira renderizar a pagina
+      setTarefas([data[0], ...tarefas]);
+    }
+  }
+
+  // --- REMOVER (DELETE) ---
+  const removerTarefa = async (id) => {
+    const { error } = await supabase
+      .from(nomeTabela)
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      alert("Não foi possível excluir a tarefa: " + error.message);
+      console.error("Erro ao deletar:", error);
+    } else {
+      // 2. Só atualiza a tela (UI) se o banco deletou com sucesso
+      setTarefas(tarefas.filter(t => t.id !== id));
+    }
+  }
+
+  // --- EDITAR (UPDATE) ---
+  const editarTarefa = async (id, novoTitulo) => {
+    const { error } = await supabase
+      .from(nomeTabela)
+      .update({ title: novoTitulo })// O que mudar
+      .eq('id', id) // eq compara o id da tabela com a var id
+
+    if (error) {
+      alert("Erro ao editar: " + error.message);
+    } else {
+      setTarefas(tarefas.map(t => t.id === id ? { ...t, title: novoTitulo } : t));
+    }
+  }
+
+  // --- ALTERAR CONCLUSÃO (UPDATE) ---
+
+  const alterarConclusao = async (id, statusAtual) => {
+
+    const novoStatus = statusAtual === STATUS.DONE ? STATUS.TODO : STATUS.DONE;
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: novoStatus })
+      .eq('id', id);
+
+    if (!error) {
+      setTarefas(tarefas.map(t => t.id === id ? { ...t, status: novoStatus } : t));
+    }
+  };
+
+  const tarefasFiltradas = tarefas.filter(t =>
+    t.title?.toLowerCase().includes(busca.toLowerCase())
+  )
+
+  const tarefasOrdenadas = [...tarefasFiltradas].sort((a, b) => { a.status === STATUS.DONE ? 1 : -1 });
+
+  // Cálculos de Estatísticas
+  const totalTarefas = tarefas.length;
+  const concluidas = tarefas.filter(t => t.status === STATUS.DONE).length;
+  const porcentagem = totalTarefas > 0 ? Math.round((concluidas / totalTarefas) * 100) : 0;
 
   const alterarTema = () => {
     setTema(tema === 'escuro' ? 'claro' : 'escuro');
   }
 
-
-  const adicionarTarefa = (texto) => {
-    const nova = { id: Date.now(), texto, concluida: false }
-    setTarefas([...tarefas, nova]); // adiciona a nova tarefa no final do novo array
-  }
-
-  const removerTarefa = (id) => {
-    //Excluir a tarefa com o id atual 
-    //E retornar nova lista sem a tarefa excuida
-    //Muda o valor de tarefas no useState
-    setTarefas(tarefas.filter(t => t.id !== id));
-  }
-
-  const alterarConclusao = (id) => {
-    setTarefas(tarefas.map(t => t.id === id ? { ...t, concluida: !t.concluida } : t));
-  };
-
-  // 'busca' será usado quando a página re-renderizar com 'setBusca'
-  const [busca, setBusca] = useState("");
-
-  const tarefasFiltradas = tarefas.filter(tarefa => {
-    // Se a busca estiver vazia, retorna TRUE para todos (mostra tudo)
-    if (!busca || busca.trim() === "") return true;
-    // Se a tarefa não tiver texto, retorna FALSE (esconde ela)
-    if (!tarefa.texto) return false;
-    return tarefa.texto.toLowerCase().includes(busca.toLowerCase())
-  });
-
-  const tarefasOrdenadas = [...tarefasFiltradas].sort((a, b) => {
-    if (a.concluida === b.concluida) return 0;
-    return a.concluida ? 1 : -1;
-  })
-
-  console.log("Valor atual da busca:", `'${busca}'`);
-
-  const totalTarefas = tarefas.length;
-  const concluidas = tarefas.filter(t => t.concluida).length;
-  const pendentes = totalTarefas - concluidas
-  const porcentagem = totalTarefas > 0 ?
-    Math.round((concluidas / totalTarefas) * 100) :
-    0;
-
-  const editarTarefa = (id, novoTexto) => {
-    const tarefasAtualizadas = tarefas.map(
-      t => t.id === id ? { ...t, texto: novoTexto } : t);
-    setTarefas(tarefasAtualizadas);
-  }
+  if (loading) return <div className="loading">Carregando Dashboard...</div>;
 
   return (
     <div className={`app-container ${tema}`}>
@@ -118,7 +174,7 @@ export default function App() {
               </div>
               <div className='stat-card'>
                 <span>Pendentes</span>
-                <strong className='warning'>{pendentes}</strong>
+                {/* <strong className='warning'>{pendentes}</strong> */}
               </div>
             </section>
 
@@ -154,7 +210,7 @@ export default function App() {
               <TaskItem
                 key={tarefa.id}
                 tarefa={tarefa}
-                aoAlternar={alterarConclusao}
+                aoAlternar={() => alterarConclusao(tarefa.id, tarefa.status)}
                 aoRemover={removerTarefa}
                 aoEditar={editarTarefa}
               />
@@ -162,9 +218,6 @@ export default function App() {
           </div>
         </section>
       </main>
-
-      {/* Observação: Use <main> e <nav> (ou <aside>) no nível principal para o Grid */}
-
     </div>
   )
 }
