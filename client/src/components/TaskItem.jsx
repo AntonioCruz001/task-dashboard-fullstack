@@ -38,6 +38,8 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
 
     const estaConcluida = tarefa.status === 'feito'
 
+    console.log(tarefa);
+
     return (
         <div className={`task-item ${estaConcluida ? 'completed' : ''} priority-${tarefa.priority} ${editando ? 'editing' : ''} ${estaExcluindo ? 'deleting' : ''}`}
             onClick={() => !editando && aoAlternar(tarefa.id, tarefa.status)}

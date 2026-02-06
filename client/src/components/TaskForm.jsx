@@ -64,10 +64,11 @@ export default function TaskForm({ aoAdicionar, aoFechar }) {
                     <select
                         value={prioridade}
                         onChange={(e) => setPrioridade(e.target.value)}
+                        className={`select-prioridade priority-${prioridade}`}
                     >
-                        <option value="baixa">Baixa</option>
-                        <option value="media">Média</option>
-                        <option value="alta">Alta</option>
+                        <option value="baixa">🟢 Baixa</option>
+                        <option value="media">🟠 Média</option>
+                        <option value="alta">🔴 Alta</option>
                     </select>
                 </div>
 
