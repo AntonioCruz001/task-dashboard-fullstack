@@ -12,6 +12,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
   const [tema, setTema] = useState('escuro');
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const nomeTabela = 'tasks';
 
@@ -35,6 +36,21 @@ export default function App() {
   useEffect(() => {
     fetchTasks()
   }, []);
+
+  useEffect(() => {
+    const tratarTeclado = (e) => {
+      if (e.key === 'Escape') {
+        setIsFormOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', tratarTeclado);
+
+    return () => window.removeEventListener('keydown', tratarTeclado);
+  }, [])
+
+  // ---Mostrar Form---
+  const mostrarForm = () => { setIsFormOpen(!isFormOpen) };
 
   // --- ADICIONAR (CREATE) ---
   // Agora a função recebe um objeto 'novaTarefa'
@@ -94,17 +110,36 @@ export default function App() {
 
   // --- ALTERAR CONCLUSÃO (UPDATE) ---
 
+  // const alterarConclusao = async (id, statusAtual) => {
+
+  //   const novoStatus = statusAtual === STATUS.DONE ? STATUS.TODO : STATUS.DONE;
+
+  //   const { error } = await supabase
+  //     .from('tasks')
+  //     .update({ status: novoStatus })
+  //     .eq('id', id);
+
+  //   if (!error) {
+  //     setTarefas(tarefas.map(t => t.id === id ? { ...t, status: novoStatus } : t));
+  //   }
+  // };
+
+  // --- //
+
   const alterarConclusao = async (id, statusAtual) => {
 
     const novoStatus = statusAtual === STATUS.DONE ? STATUS.TODO : STATUS.DONE;
+
+    setTarefas(tarefas.map(t => t.id === id ? { ...t, status: novoStatus } : t));
 
     const { error } = await supabase
       .from('tasks')
       .update({ status: novoStatus })
       .eq('id', id);
 
-    if (!error) {
-      setTarefas(tarefas.map(t => t.id === id ? { ...t, status: novoStatus } : t));
+    if (error) {
+      alert("Erro ao sincronizar. Tentando reverter...");
+      setTarefas(tarefas.map(t => t.id === id ? { ...t, status: statusAtual } : t));
     }
   };
 
@@ -117,6 +152,7 @@ export default function App() {
   // Cálculos de Estatísticas
   const totalTarefas = tarefas.length;
   const concluidas = tarefas.filter(t => t.status === STATUS.DONE).length;
+  const pendentes = tarefas.filter(t => t.status === STATUS.TODO).length;
   const porcentagem = totalTarefas > 0 ? Math.round((concluidas / totalTarefas) * 100) : 0;
 
   const alterarTema = () => {
@@ -135,14 +171,14 @@ export default function App() {
         </button>
       </header>
 
-      <nav className="dashboard-sidebar">
+      {/* <nav className="dashboard-sidebar">
         <h2>Menu</h2>
         <ul>
           <li>Início</li>
           <li>Tarefas</li>
           <li>Configurações</li>
         </ul>
-      </nav>
+      </nav> */}
 
       <main className='dashboard-content'>
         <section className="task-list">
@@ -174,7 +210,7 @@ export default function App() {
               </div>
               <div className='stat-card'>
                 <span>Pendentes</span>
-                {/* <strong className='warning'>{pendentes}</strong> */}
+                <strong className='warning'>{pendentes}</strong>
               </div>
             </section>
 
@@ -203,7 +239,14 @@ export default function App() {
           </div>
 
           {/* a "props.aoAdicionar" recebe a função adicionarTarefa */}
-          <TaskForm aoAdicionar={adicionarTarefa} />
+          <button className="nova-tarefa" onClick={mostrarForm}>
+            {isFormOpen ? 'Fechar' : 'Nova Tarefa'}
+          </button>
+
+          {isFormOpen && <TaskForm 
+          aoAdicionar={adicionarTarefa} 
+          aoFechar={mostrarForm}
+          />}
 
           <div className='tasks-container'>
             {tarefasOrdenadas.map(tarefa => (

@@ -12,7 +12,8 @@
 .dashboard-sidebar,
 .dashboard-header,
 .dashboard-content,
-input {
+input,
+textarea {
     transition: background-color 1s ease, color 1s ease, border-color 1s ease;
 }
 
@@ -30,6 +31,8 @@ input {
     --bg-edit-btn: #1a1a1a;
     --accent-color: #605994;
     --attention-color: #871127;
+
+    --cancel-color: #666666;
 }
 
 .app-container.claro {
@@ -46,6 +49,8 @@ input {
     --bg-edit-btn: #a9a9a9;
     --accent-color: #230ac8;
     --attention-color: #871127;
+
+    --cancel-color: #666666;
 }
 
 .app-container {
@@ -295,6 +300,38 @@ input {
     border-color: #444;
 }
 
+.task-item.deleting {
+    border-color: #ff4d4d !important;
+    background-color: rgba(255, 77, 77, 0.1) !important;
+    transform: scale(0.98);
+    transition: all 0.2s ease;
+}
+
+.task-item.deleting span {
+    color: #ff4d4d !important;
+    text-decoration: none;
+}
+
+.task-content {
+    display: flex;
+    height: 44px;
+}
+
+.edit-input {
+    height: 24px;
+    font-size: inherit;
+}
+
+.text-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.text-wrapper>span,
+.text-wrapper>small {
+    margin-left: 4px;
+}
+
 .task-text {
     flex: 1;
     margin-left: 10px;
@@ -317,18 +354,87 @@ input {
 }
 
 .task-form {
-    display: flex;
-    gap: 10px;
     margin-bottom: 30px;
+    width: 100%;
+    background-color: var(--bg-header);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.form-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
 }
 
 .task-form input {
     flex: 1;
     padding: 12px;
     border-radius: 8px;
-    border: 1px solid #333;
-    background-color: #1e1e1e;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-task-bg);
     color: white;
+}
+
+.task-form textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: var(--input-task-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font-family: inherit;
+    resize: vertical;
+}
+
+.select-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.task-form select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: var(--input-task-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    outline: none;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.btn-container {
+    display: flex;
+    gap: 10px;
+}
+
+.cancel-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--cancel-color);
+    /* background-color: transparent; */
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background-color: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
 }
 
 .add-btn {
@@ -379,16 +485,19 @@ input {
 }
 
 .stat-card,
-.search-input,
-.task-form input {
+.search-input {
     background-color: var(--card-bg);
     color: var(--text-color) !important;
     border: 1px solid var(--border-color) !important;
 }
 
-.task-form input {
-    background-color: var(--input-task-bg);
+
+
+.input-main {
+    font-weight: bold;
+    font-size: 1.1rem;
 }
+
 
 
 .search-input::placeholder {
@@ -437,8 +546,24 @@ input {
         font-size: 0.8rem;
     }
 
+    .nova-tarefa {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: var(--accent-color);
+        color: white;
+    }
+
     .dashboard-content {
         padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .title-and-stats {
@@ -447,6 +572,11 @@ input {
     }
 
     .search-container {
+        max-width: 100%;
+    }
+
+    .task-list {
+        width: 100%;
         max-width: 100%;
     }
 
@@ -487,31 +617,49 @@ input {
         flex: 1;
         gap: 10px;
         min-height: 40px;
+        min-width: 0;
     }
 
     .task-form {
         flex-direction: column;
+        gap: 15px;
+        width: 100%;
+        margin-right: 0;
+        margin-left: 0;
     }
 
 
 
     .task-item {
-        padding: 15px;
+        display: flex;
         flex-direction: row;
+        justify-content: space-between;
         align-items: flex-start;
+        align-items: center;
+        padding: 12px 15px;
         gap: 10px;
     }
 
     .task-item span {
         word-break: break-word;
-        margin-right: 10px;
+        margin-right: 0px;
+        flex: none;
     }
 
     .task-text {
         flex: 1;
-        margin-left: 10px;
+        margin-left: 5px;
+        text-align: left;
         display: flex;
         align-items: center;
+        word-break: break-word;
+    }
+
+    .task-actions {
+        display: flex;
+        flex-shrink: 0;
+        /*impede que botoes diminuam*/
+        gap: 8px;
     }
 
     .edit-input {
@@ -545,6 +693,82 @@ input {
 
     .dashboard-sidebar li:hover {
         padding: 10px;
+    }
+
+    .form-inputs,
+    .select-group,
+    .form-footer {
+        display: flex;
+        flex-direction: column;
+        /* Garante que grupos internos também empilhem */
+        width: 100%;
+        gap: 10px;
+    }
+
+    .form-footer {
+        /* para reservar espaço para o toast */
+        min-height: 100px;
+        justify-content: flex-start;
+    }
+
+    .select-group {
+        flex-direction: row !important;
+    }
+
+    .btn-container {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .cancel-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--cancel-color);
+        /* background-color: transparent; */
+        color: var(--text-color);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+        background-color: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    .add-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        background-color: var(--accent-color);
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .toast-container {
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 5px;
+    }
+
+    .toast-success {
+        background-color: #4caf50;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
     }
 
 }
