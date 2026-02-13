@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import TaskItem from './components/TaskItem';
 import TaskForm from './components/TaskForm';
+import Stats from './components/Stats';
 import { supabase } from './supabaseClient';
 import './App.css'
 // import Venda from './components/Venda';
-// import Lupa from './assets/Lupa.png'
+// import Lupa from './assets/Lupa.png';
 
 export default function App() {
 
@@ -22,6 +23,7 @@ export default function App() {
     TODO: 'para fazer'
   }
 
+  // --- fetchTasks - Supabase online ---
   const fetchTasks = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -32,6 +34,19 @@ export default function App() {
     if (!error) setTarefas(data);
     setLoading(false);
   }
+
+  // --- fetchTasks OFFLINE ---
+  // const fetchTasks = async () => {
+  //   setLoading(true);
+  //   const data = [{
+  //     id: 1, title: 'UM', priority: 'baixa'
+  //   }, {
+  //     id: 2, title: 'Dois', priority: 'media'
+  //   }]
+
+  //   setTarefas(data);
+  //   setLoading(false);
+  // }
 
   useEffect(() => {
     fetchTasks()
@@ -61,20 +76,22 @@ export default function App() {
         {
           title: dadosDaTarefa.titulo,
           description: dadosDaTarefa.descricao,
-          status: dadosDaTarefa.status || 'todo',
-          priority: dadosDaTarefa.prioridade || 'media',
+          status: dadosDaTarefa.status || 'para fazer',
+          priority: dadosDaTarefa.prioridade,
           due_date: dadosDaTarefa.dataTarefa
         }])
       .select()
 
     if (error) {
-      alert("Erro ao salvar: " + error.message)
+      // alert("Erro ao salvar: " + error.message)
       console.log(error);
+      throw error;
+
     } else {
       // pega a linha 0 (nova tarefa) do array de itens da tabela 
       // e poe no topo da pilha de tarefas
       // setTarefas ira renderizar a pagina
-      setTarefas([data[0], ...tarefas]);
+      setTarefas(prev => [data[0], ...prev]);
     }
   }
 
@@ -104,56 +121,126 @@ export default function App() {
     if (error) {
       alert("Erro ao editar: " + error.message);
     } else {
-      setTarefas(tarefas.map(t => t.id === id ? { ...t, title: novoTitulo } : t));
+      setTarefas(prev => prev.map(t => t.id === id ? { ...t, title: novoTitulo } : t));
     }
   }
 
-  // --- ALTERAR CONCLUSÃO (UPDATE) ---
-
-  // const alterarConclusao = async (id, statusAtual) => {
-
-  //   const novoStatus = statusAtual === STATUS.DONE ? STATUS.TODO : STATUS.DONE;
-
-  //   const { error } = await supabase
-  //     .from('tasks')
-  //     .update({ status: novoStatus })
-  //     .eq('id', id);
-
-  //   if (!error) {
-  //     setTarefas(tarefas.map(t => t.id === id ? { ...t, status: novoStatus } : t));
-  //   }
-  // };
-
-  // --- //
-
+  // --- MUDANÇA DE STATUS ---
   const alterarConclusao = async (id, statusAtual) => {
-
     const novoStatus = statusAtual === STATUS.DONE ? STATUS.TODO : STATUS.DONE;
+    setTarefas(prev => prev.map(t => t.id === id ? { ...t, status: novoStatus, isPending: true } : t));
 
-    setTarefas(tarefas.map(t => t.id === id ? { ...t, status: novoStatus } : t));
+    setTimeout(async () => {
+      const { error } = await supabase
+        .from(nomeTabela)
+        .update({ status: novoStatus })
+        .eq('id', id);
 
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: novoStatus })
-      .eq('id', id);
+      setTarefas(prev => prev.map(t => t.id === id ? { ...t, isPending: false } : t));
 
-    if (error) {
-      alert("Erro ao sincronizar. Tentando reverter...");
-      setTarefas(tarefas.map(t => t.id === id ? { ...t, status: statusAtual } : t));
-    }
+      if (error) {
+        alert("Erro ao sincronizar. Tentando reverter...");
+        setTarefas(prev => prev.map(t => t.id === id ? { ...t, status: statusAtual } : t));
+      }
+    }, 600);
   };
 
   const tarefasFiltradas = tarefas.filter(t =>
     t.title?.toLowerCase().includes(busca.toLowerCase())
   )
 
-  const tarefasOrdenadas = [...tarefasFiltradas].sort((a, b) => { a.status === STATUS.DONE ? 1 : -1 });
+  // --- ALTERAR PRIORIDADE ---
+  const alterarPrioridade = (id) => {
+    const ordem = ['baixa', 'media', 'alta']
+    const tarefaAtual = tarefas.find(t => t.id === id);
+    if (!tarefaAtual) return;
 
-  // Cálculos de Estatísticas
-  const totalTarefas = tarefas.length;
-  const concluidas = tarefas.filter(t => t.status === STATUS.DONE).length;
-  const pendentes = tarefas.filter(t => t.status === STATUS.TODO).length;
-  const porcentagem = totalTarefas > 0 ? Math.round((concluidas / totalTarefas) * 100) : 0;
+    const indexAtual = ordem.indexOf(tarefaAtual.priority);
+    // Ciclo do index: 0+1 % 3 = 1 | 1+1 % 3 = 2 | 2+1 % 3 = 0
+    const proximoIndex = (indexAtual + 1) % ordem.length;
+    const novaPrioridade = ordem[proximoIndex];
+
+    // Atualiza o estado
+    setTarefas(prev => prev.map(t => {
+      if (t.id === id) {
+        return { ...t, priority: novaPrioridade, isPriorityPending: true, originalPriority: t.priority };
+      }
+      return t;
+    }));
+
+    // Timeout para aguardar e sincronizar
+    setTimeout(async () => {
+      const { error } = await supabase
+        .from(nomeTabela)
+        .update({ priority: novaPrioridade })
+        .eq('id', id);
+
+      setTarefas(prev => prev.map(t => {
+        if (t.id === id) {
+          const { isPriorityPending, originalPriority, ...tarefaSpread } = t;
+          return { ...tarefaSpread, isPriorityPending: false };
+        }
+        return t;
+      }
+      ));
+
+      if (error) {
+        alert("Erro ao sincronizar. Revertendo...");
+        setTarefas(prev => prev.map(t => t.id === id ? { ...t, priority: tarefaAtual.priority } : t));
+      }
+    }, 600)
+  }
+
+  // Ordenar Tarefas a partir da Prioridade
+  const pesos = {
+    alta: 3,
+    media: 2,
+    baixa: 1
+  };
+  const tarefasOrdenadas = [...tarefas].sort((a, b) => {
+
+    // isPending para aguardar a mudança visual
+    // com isPending = true a ordenação se mantém até o fim do setTimeout
+    const obterStatusVisual = (t) => {
+      if (t.isPending) {
+        return t.status === STATUS.DONE ? STATUS.TODO : STATUS.DONE;
+      }
+      return t.status;
+    };
+
+    const obterPrioridadeVisual = (t) => {
+      if (t.isPriorityPending && t.originalPriority) {
+        return t.originalPriority;
+      }
+      return t.priority;
+    };
+
+    const statusA = obterStatusVisual(a);
+    const statusB = obterStatusVisual(b);
+
+    // Ordenação por Status - não concluidas > concluidas
+    if (statusA !== statusB) {
+      return statusA === STATUS.TODO ? -1 : 1;
+    };
+
+    // Peso maior primeiro - alta > media > baixa
+    // -1 = a primeiro / 0 = empate / 1(positivo) = b primeiro
+    const prioA = obterPrioridadeVisual(a);
+    const prioB = obterPrioridadeVisual(b);
+
+    const pesoA = pesos[prioA] || 0;
+    const pesoB = pesos[prioB] || 0;
+
+    if (pesoB !== pesoA) {
+      return pesoB - pesoA;
+    };
+    return (a.title || '').localeCompare(b.title || '');
+  })
+
+
+
+
+
 
   const alterarTema = () => {
     setTema(tema === 'escuro' ? 'claro' : 'escuro');
@@ -171,48 +258,13 @@ export default function App() {
         </button>
       </header>
 
-      {/* <nav className="dashboard-sidebar">
-        <h2>Menu</h2>
-        <ul>
-          <li>Início</li>
-          <li>Tarefas</li>
-          <li>Configurações</li>
-        </ul>
-      </nav> */}
-
       <main className='dashboard-content'>
         <section className="task-list">
 
           <div className='title-and-stats'>
             <h2>Minhas Tarefas</h2>
 
-            <section className='stats-container'>
-
-              <div className='stats-text'>
-                {/* <span>{concluidas}de {totalTarefas} tarefas concluídas</span> */}
-                <span>{porcentagem}%</span>
-              </div>
-
-              <div className='progress-bar-bg'>
-                <div
-                  className="progress-bar-fill"
-                  style={{ width: `${porcentagem}%` }}>
-                </div>
-              </div>
-
-              <div className='stat-card'>
-                <span>Total</span>
-                <strong>{totalTarefas}</strong>
-              </div>
-              <div className='stat-card'>
-                <span>Concluídas</span>
-                <strong className='sucsses'>{concluidas}</strong>
-              </div>
-              <div className='stat-card'>
-                <span>Pendentes</span>
-                <strong className='warning'>{pendentes}</strong>
-              </div>
-            </section>
+            <Stats tarefas={tarefas} />
 
             <div className='search-container'>
               <svg
@@ -229,7 +281,7 @@ export default function App() {
               </svg>
               <input
                 type="text"
-                // placeholder='Pesquisar tarefas'
+                placeholder='Pesquisar tarefas'
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)} // quando digitar uma letra será disparado o filter
                 className='search-input'
@@ -243,9 +295,9 @@ export default function App() {
             {isFormOpen ? 'Fechar' : 'Nova Tarefa'}
           </button>
 
-          {isFormOpen && <TaskForm 
-          aoAdicionar={adicionarTarefa} 
-          aoFechar={mostrarForm}
+          {isFormOpen && <TaskForm
+            aoAdicionar={adicionarTarefa}
+            aoFechar={mostrarForm}
           />}
 
           <div className='tasks-container'>
@@ -255,6 +307,7 @@ export default function App() {
                 tarefa={tarefa}
                 aoAlternar={() => alterarConclusao(tarefa.id, tarefa.status)}
                 aoRemover={removerTarefa}
+                aoAlterarPrioridade={alterarPrioridade}
                 aoEditar={editarTarefa}
               />
             ))}

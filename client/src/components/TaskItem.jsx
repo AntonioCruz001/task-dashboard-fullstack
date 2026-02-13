@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
+export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoAlterarPrioridade, aoEditar }) {
     const [editando, setEditando] = useState(false);
     const [novoTexto, setNovoTexto] = useState(tarefa.title);
     const [estaExcluindo, setEstaExcluindo] = useState(false);
@@ -14,8 +14,6 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
             setEditando(false)
         }
     };
-
-
 
     const handleCancelar = () => {
         setNovoTexto(tarefa.title);
@@ -36,14 +34,20 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
         }, 300);
     }
 
-    const estaConcluida = tarefa.status === 'feito'
+    const estaConcluida = tarefa.status === 'feito';
+    const estaMudando = tarefa.isPending;
 
-    console.log(tarefa);
+    // console.log(tarefa);
+
+    const iconesPrioridade = {
+        baixa: '🟢',
+        media: '🟠',
+        alta: '🔴'
+    };
 
     return (
-        <div className={`task-item ${estaConcluida ? 'completed' : ''} priority-${tarefa.priority} ${editando ? 'editing' : ''} ${estaExcluindo ? 'deleting' : ''}`}
-            onClick={() => !editando && aoAlternar(tarefa.id, tarefa.status)}
-            style={{ cursor: editando ? 'default' : 'pointer' }}
+        <div className={`task-item ${estaConcluida ? 'completed' : ''} priority-${tarefa.priority} ${editando ? 'editing' : ''} ${estaExcluindo ? 'deleting' : ''} ${estaMudando ? 'pending' : ''}`}
+            onClick={() => !editando && !estaMudando && aoAlternar(tarefa.id, tarefa.status)}
         >
             <div className="task-content">
                 <span className="status-icon">
@@ -76,8 +80,20 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
             </div>
 
             <div className="task-actions">
+
+                <button className="priority-btn action-btn"
+                    disabled={estaMudando}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        aoAlterarPrioridade(tarefa.id)
+                    }}
+                >
+                    {iconesPrioridade[tarefa.priority]}
+                </button>
+
                 <button
                     className="edit-btn action-btn"
+                    disabled={estaMudando}
                     onClick={(e) => {
                         e.stopPropagation();
                         handleIniciarEdicao();
@@ -91,6 +107,7 @@ export default function TaskItem({ tarefa, aoAlternar, aoRemover, aoEditar }) {
                     //     e.stopPropagation();
                     //     aoRemover(tarefa.id);
                     // }}
+                    disabled={estaMudando}
                     onClick={handleExclusao}
                 >
                     🗑️

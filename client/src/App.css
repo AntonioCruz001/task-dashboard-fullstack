@@ -28,8 +28,11 @@ textarea {
     --bg-header: #1a1a1a;
     --card-bg: #1e1e1e;
     --text-color: #ffffff;
+    --text-color-desc: #bcbbb1;
+
     --border-color: #333;
     --text-secondary: #888;
+    --contador-color: #aaa;
     --bg-hover: #2c2c2c;
     --input-task-bg: #2e3130;
     --bg-btn: #1a1a1a;
@@ -46,8 +49,10 @@ textarea {
     --bg-header: #ffffff;
     --card-bg: #ffffff;
     --text-color: #1a1a1a;
+    --text-color-desc: #62625e;
     --border-color: #aaa;
     --text-secondary: #666;
+    --contador-color: #333;
     --bg-hover: #f5f5f5;
     --input-task-bg: #b7c4bf;
     --bg-btn: #c5c5c5;
@@ -55,14 +60,14 @@ textarea {
     --accent-color: #230ac8;
     --attention-color: #871127;
 
-    --cancel-color: #666666;
+    --cancel-color: #c4c4c4;
 }
 
 .app-container {
     display: grid;
     grid-template-areas:
         'header header'
-        'sidebar content';
+        'content content';
     grid-template-rows: 60px 1fr;
     grid-template-columns: 250px 1fr;
     width: 100%;
@@ -263,6 +268,19 @@ textarea {
     outline: none;
 }
 
+.nova-tarefa {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--accent-color);
+    color: white;
+}
+
 .tasks-container {
     min-height: 200px;
     height: auto;
@@ -322,6 +340,10 @@ textarea {
     border-color: #444;
 }
 
+.task-item.editing {
+    cursor: default;
+}
+
 .task-item.deleting {
     border-color: #ff4d4d !important;
     background-color: rgba(255, 77, 77, 0.1) !important;
@@ -359,6 +381,10 @@ textarea {
     margin-left: 10px;
 }
 
+.task-desc {
+    color: var(--text-color-desc);
+}
+
 .task-item.completed {
     opacity: 0.6;
     background-color: #1a1a1a;
@@ -366,7 +392,8 @@ textarea {
     border-left-color: var(--completed);
 }
 
-.task-item.completed .task-text {
+.task-item.completed .task-text,
+.task-item.completed .task-desc {
     text-decoration: line-through;
     color: #888;
 }
@@ -392,13 +419,35 @@ textarea {
     width: 100%;
 }
 
+.input-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+}
+
+.contador {
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+    font-size: 0.65rem;
+    color: var(--contador-color);
+    pointer-events: none;
+    opacity: .7;
+}
+
+.contador.limite {
+    color: var(--prioridade-alta);
+    font-weight: bold;
+    opacity: 1;
+}
+
 .task-form input {
     flex: 1;
     padding: 12px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     background-color: var(--input-task-bg);
-    color: white;
+    color: var(--text-color);
 }
 
 .task-form textarea {
@@ -434,9 +483,8 @@ textarea {
     font-weight: bold;
 }
 
-.select-prioridade option{
+.select-prioridade option {
     color: var(--text-color);
-    background-color: var(--bg-pagina);
 }
 
 .task-form select {
@@ -454,6 +502,70 @@ textarea {
     justify-content: space-between;
     align-items: center;
     margin-top: 5px;
+    flex-direction: column;
+}
+
+.footer_row1 {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    position: relative;
+    /* height: 20px; */
+    margin-top: 5px;
+}
+
+.footer_row2 {
+    height: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    margin-top: 10px;
+}
+
+.toast-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toast-mini {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    white-space: nowrap;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    /* animation: fadeIn 0.3s ease; */
+    animation: zoomIn 0.5s ease;
+    transition: all 0.3s ease;
+}
+
+.toast-mini.sucesso {
+    background-color: var(--prioridade-baixa);
+}
+
+.toast-mini.erro {
+    background-color: var(--prioridade-alta);
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
 }
 
 .btn-container {
@@ -476,6 +588,7 @@ textarea {
 
 .cancel-btn:hover {
     background-color: var(--bg-hover);
+    background-color: #a5a5a5;
     border: 1px solid var(--border-color);
     color: var(--text-color);
 }
@@ -552,6 +665,7 @@ input {
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
+
 
 @media (max-width:768px) {
     .app-container {
@@ -661,6 +775,7 @@ input {
         gap: 10px;
         min-height: 40px;
         min-width: 0;
+        height: auto !important;
     }
 
     .task-form {
@@ -671,7 +786,9 @@ input {
         margin-left: 0;
     }
 
-
+    .task-form textarea {
+        min-height: 60px;
+    }
 
     .task-item {
         display: flex;
@@ -683,10 +800,19 @@ input {
         gap: 10px;
     }
 
-    .task-item span {
+    .task-item span,
+    .task-item small {
         word-break: break-word;
         margin-right: 0px;
         flex: none;
+    }
+
+    .text-wrapper {
+        height: auto;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        /*parao word-break funcionar em flex */
     }
 
     .task-text {
@@ -695,14 +821,35 @@ input {
         text-align: left;
         display: flex;
         align-items: center;
+        white-space: normal;
         word-break: break-word;
+        font-size: .95rem;
+        line-height: 1.2;
+
+        /* overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap; */
     }
 
     .task-actions {
         display: flex;
         flex-shrink: 0;
         /*impede que botoes diminuam*/
-        gap: 8px;
+        gap: 4px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0 !important;
+        font-size: 0.8rem;
+
+        /* width: 10px;
+        padding: 8px 18px; */
+
+        /* display: flex;
+        justify-content: center;
+        align-items: center; */
     }
 
     .edit-input {
@@ -754,8 +901,13 @@ input {
         justify-content: flex-start;
     }
 
+    .footer_row1 {
+        flex-direction: column;
+    }
+
     .select-group {
         flex-direction: row !important;
+        justify-content: space-evenly;
     }
 
     .btn-container {
@@ -795,23 +947,17 @@ input {
         transition: all 0.3s ease;
     }
 
-    .toast-container {
-        height: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 5px;
-    }
 
-    .toast-success {
-        background-color: #4caf50;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.3s ease-in-out;
-    }
+}
 
+
+.task-item.pending,
+.task-item.pending:hover {
+    opacity: 0.5 !important;
+    cursor: wait !important;
+    /* Não usamos mais `pointer-events: none` aqui, pois isso impede que o cursor mude
+       e também faz com que pseudo-:hover não seja aplicado. Bloqueios de interação
+       são tratados no componente React via estado `isPending`. */
+    transform: none !important;
+    /* Trava o movimento de flutuar */
 }
